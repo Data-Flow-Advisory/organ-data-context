@@ -1,0 +1,21 @@
+{
+  "_README": "Typed port manifest for this organ (the Lego stud). 'name' is the literal wiring address: the key decide() reads under state (inputs) / writes under output (outputs). 'type' is a name from the shared vocabulary in types.json. Two ports connect iff their type matches. See CONNECTORS.md in the orchestrator repo.",
+  "inputs": [
+    {"name": "op", "type": "str", "required": true},
+    {"name": "connections", "type": "ConnectorSummaries", "required": false},
+    {"name": "has_data", "type": "bool", "required": false},
+    {"name": "answer_text", "type": "str", "required": false},
+    {"name": "validations", "type": "ValidationList", "required": false},
+    {"name": "questions", "type": "QuestionList", "required": false}
+  ],
+  "outputs": [
+    {"name": "context", "type": "str"},
+    {"name": "source_count", "type": "int"},
+    {"name": "should_validate", "type": "bool"},
+    {"name": "reason", "type": "str"},
+    {"name": "validations", "type": "ValidationList"},
+    {"name": "dropped", "type": "int"},
+    {"name": "questions", "type": "QuestionList"},
+    {"name": "count", "type": "int"}
+  ]
+}

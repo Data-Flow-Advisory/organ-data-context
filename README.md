@@ -117,7 +117,54 @@ python -m pytest -v
 
 The `conformance` GitHub Action shadow-runs the organ on every file in
 `samples/` and prints each verdict + `self_metric` to the job summary, then
-runs the full pytest suite.
+runs the port-manifest check (`check_ports.py`) and the full pytest suite.
+
+## Ports (the connection standard)
+
+`ports.json` is this organ's typed port manifest — the "Lego stud" from the
+orchestrator's `CONNECTORS.md`. Each port's `name` is the literal wiring
+address (the key `decide()` reads under `state` for inputs / writes under
+`output` for outputs), and its `type` is a name from the shared vocabulary in
+`types.json`. Two organ ports connect iff their `type` matches.
+
+Because this organ is polymorphic on `state.op`, its manifest is the **union**
+of the names read/written across all four ops:
+
+| op | reads (inputs) | writes (outputs) |
+|----|----------------|------------------|
+| `summary` | `connections` | `context`, `source_count` |
+| `validate_gate` | `has_data`, `answer_text` | `should_validate`, `reason` |
+| `normalize_validations` | `validations` | `validations`, `dropped` |
+| `normalize_questions` | `questions` | `questions`, `count` |
+
+`op` is the required discriminator input; every other input is `required:
+false` because only its own op reads it.
+
+`check_ports.py` (run in CI and via pytest in `test_ports.py`) asserts:
+1. `ports.json` parses and has the `{inputs, outputs}` shape;
+2. every port `type` exists in the vocabulary (`types.json`);
+3. `decide()` actually reads every declared input name and writes every
+   declared output name — grounded by running the committed `samples/`.
+
+### Vocabulary snapshot + proposed types
+
+`types.json` here is a **pinned snapshot** of the canonical vocabulary at
+`orchestrator@feat/drift-gate` (private repo — vendored so CI needs no
+cross-repo fetch). Types tagged `"_proposed": true` are this PR's additions,
+proposed for upstream into the canonical vocabulary because nothing existing
+fit this organ's ports:
+
+- `str`, `int`, `bool` — JSON-scalar primitives, promoted from the
+  vocabulary's own leaf-type tokens to first-class names so scalar/control
+  ports can be typed without minting a bespoke composite per scalar (which
+  would be the sprawl `CONNECTORS.md` warns against).
+- `ConnectorSummaries` — pre-fetched per-connection data summaries
+  (`op=summary` input).
+- `ValidationList` — answer-vs-data validations (raw in, clamped out).
+- `QuestionList` — data-informed interview questions (raw in, capped out).
+
+When these land upstream, re-pin `types.json` from the canonical source and
+drop the `_proposed` markers.
 
 ## Provenance
 
