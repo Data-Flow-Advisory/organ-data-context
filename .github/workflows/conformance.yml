@@ -30,6 +30,12 @@ jobs:
           else
             echo "No samples/ directory found" >> "$GITHUB_STEP_SUMMARY"
           fi
+      - name: Port manifest check
+        run: |
+          set -euo pipefail
+          echo "## Port manifest" >> "$GITHUB_STEP_SUMMARY"
+          out="$(python3 check_ports.py)"
+          printf '%s\n' "$out" >> "$GITHUB_STEP_SUMMARY"
       - name: Run tests
         run: |
           python -m pip install --quiet pytest
