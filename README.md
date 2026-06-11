@@ -98,6 +98,53 @@ without a truthy `claim` are dropped; `severity` not in
 
 → `output: {"questions": ["q1", "q2", "q3"], "count": 3}`.
 
+## Ports (`ports.json`)
+
+`ports.json` is the connection-standard declaration the orchestrator uses to
+wire this organ to upstream/downstream organs (per the orchestrator
+`CONNECTORS.md`). It names the keys `decide()` reads from `state` (`inputs`)
+and the keys it writes under `output` (`outputs`), each mapped to a type from
+the type vocabulary:
+
+| Port | Direction | Type | Notes |
+|------|-----------|------|-------|
+| `op` | input | `string` | **required** — the operation discriminator. |
+| `connections` | input | `array` | `op="summary"` only. |
+| `has_data` | input | `boolean` | `op="validate_gate"` only. |
+| `answer_text` | input | `string` | `op="validate_gate"` only. |
+| `validations` | input | `array` | `op="normalize_validations"` only. |
+| `questions` | input | `array` | `op="normalize_questions"` only. |
+| `context` | output | `string` | `op="summary"`. |
+| `source_count` | output | `integer` | `op="summary"`. |
+| `should_validate` | output | `boolean` | `op="validate_gate"`. |
+| `reason` | output | `string` | `op="validate_gate"`. |
+| `validations` | output | `array` | `op="normalize_validations"`. |
+| `dropped` | output | `integer` | `op="normalize_validations"`. |
+| `questions` | output | `array` | `op="normalize_questions"`. |
+| `count` | output | `integer` | `op="normalize_questions"`. |
+
+Only `op` is read on every call; the rest are op-specific, so each
+non-`op` input is `required: false`. The envelope keys `rationale` and
+`self_metric` are part of every organ's return contract, not data ports, so
+they are not listed. This is a multi-op organ, so the `outputs` set is the
+**union** across all four ops (no single call emits all eight).
+
+> **Type vocabulary note.** The canonical vocabulary lives at
+> `Data-Flow-Advisory/orchestrator/types.json` (per `CONNECTORS.md`), but that
+> repo was unreachable (404 on every ref, incl. `feat/drift-gate`) when this
+> declaration was added. To keep the conformance check self-contained, this
+> organ **vendors** the JSON-primitive vocabulary in `types.json`. No custom
+> type was needed — every port maps to a JSON primitive. Reconcile the type
+> *names* against the orchestrator's canonical `types.json` once it is
+> published.
+
+`check_ports.py` enforces all three guarantees CONNECTORS.md asks for:
+ports.json parses and is well-formed; every declared type exists in the
+vocabulary; and `decide()` reads exactly the declared inputs (verified by
+AST scan for `state.get("...")`) and writes exactly the declared outputs
+(verified by running every op and taking the union). It runs in the
+`conformance` Action and is mirrored by the `TestPorts` pytest class.
+
 ## Running
 
 ```bash
@@ -115,9 +162,9 @@ python -m pip install pytest
 python -m pytest -v
 ```
 
-The `conformance` GitHub Action shadow-runs the organ on every file in
-`samples/` and prints each verdict + `self_metric` to the job summary, then
-runs the full pytest suite.
+The `conformance` GitHub Action checks `ports.json` (`python3 check_ports.py`),
+shadow-runs the organ on every file in `samples/` and prints each verdict +
+`self_metric` to the job summary, then runs the full pytest suite.
 
 ## Provenance
 

@@ -406,3 +406,55 @@ class TestSamplesConform:
         assert r["self_metric"]["decision_path"] == "gate_ok"
         assert r["output"]["should_validate"] is True
         assert r["output"]["reason"] == "ok"
+
+
+# --------------------------------------------------------------------------- #
+# ports.json — connection-standard port declaration
+#
+# These mirror check_ports.py so the contract is enforced by the pytest suite
+# as well as the dedicated conformance step. ports.json declares the keys
+# decide() reads from `state` (inputs) and writes under `output` (outputs);
+# every type must exist in the vendored types.json vocabulary.
+# --------------------------------------------------------------------------- #
+class TestPorts:
+    def _load(self, name):
+        import os
+        here = os.path.dirname(__file__)
+        with open(os.path.join(here, name)) as f:
+            return json.load(f)
+
+    def test_check_ports_passes(self):
+        """The standalone conformance check exits 0 against the committed manifests."""
+        import check_ports
+        assert check_ports.main() == 0
+
+    def test_ports_shape(self):
+        ports = self._load("ports.json")
+        assert isinstance(ports["inputs"], list) and ports["inputs"]
+        assert isinstance(ports["outputs"], list) and ports["outputs"]
+        for i in ports["inputs"]:
+            assert {"name", "type", "required"} <= set(i)
+            assert isinstance(i["required"], bool)
+        for o in ports["outputs"]:
+            assert {"name", "type"} <= set(o)
+
+    def test_every_type_in_vocabulary(self):
+        ports = self._load("ports.json")
+        vocab = set(self._load("types.json")["types"])
+        for p in ports["inputs"] + ports["outputs"]:
+            assert p["type"] in vocab, f"{p['name']}: {p['type']} not in {sorted(vocab)}"
+
+    def test_declared_inputs_match_state_reads(self):
+        import check_ports
+        import os
+        here = os.path.dirname(__file__)
+        with open(os.path.join(here, "organ.py")) as f:
+            reads = check_ports._state_get_literals(f.read())
+        declared = {i["name"] for i in self._load("ports.json")["inputs"]}
+        assert reads == declared
+
+    def test_declared_outputs_match_produced(self):
+        import check_ports
+        produced = check_ports._produced_output_keys(decide)
+        declared = {o["name"] for o in self._load("ports.json")["outputs"]}
+        assert produced == declared

@@ -1,0 +1,11 @@
+{
+  "_comment": "VENDORED type vocabulary. The orchestrator's canonical vocabulary lives at Data-Flow-Advisory/orchestrator/types.json (per CONNECTORS.md), but that repo is unreachable to this worker (404 on every ref incl. feat/drift-gate) at the time ports.json was added. To keep the conformance check self-contained and green, this organ vendors the JSON-primitive vocabulary below. Reconcile these type names against the orchestrator's canonical types.json once it is published; no new/custom types were needed — every port maps to a JSON primitive.",
+  "types": {
+    "string":  {"description": "A UTF-8 text value."},
+    "integer": {"description": "A whole number (no fractional part)."},
+    "number":  {"description": "A numeric value (integer or floating point)."},
+    "boolean": {"description": "A true/false value."},
+    "object":  {"description": "A JSON object (key/value map)."},
+    "array":   {"description": "An ordered JSON list."}
+  }
+}
