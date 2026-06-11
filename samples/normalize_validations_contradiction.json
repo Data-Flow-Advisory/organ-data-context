@@ -1,0 +1,23 @@
+{
+  "state": {
+    "op": "normalize_validations",
+    "validations": [
+      {
+        "claim": "we process about 50 orders a day",
+        "data_shows": "the orders sheet records ~200 orders a day",
+        "source": "orders.gsheet",
+        "severity": "contradiction"
+      },
+      {
+        "data_shows": "no claim field — should be dropped",
+        "severity": "note"
+      },
+      {
+        "claim": "Fridays are quiet",
+        "data_shows": "Friday absence rate is 23%",
+        "source": "staff.csv",
+        "severity": "made-up-severity"
+      }
+    ]
+  }
+}

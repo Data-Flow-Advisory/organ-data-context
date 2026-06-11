@@ -1,0 +1,32 @@
+{
+  "state": {
+    "op": "summary",
+    "connections": [
+      {
+        "name": "Staff roster",
+        "summary": {
+          "source": "staff.csv",
+          "rows": 200,
+          "columns": [
+            {"name": "department", "type": "string", "samples": ["Ops", "Sales", "Finance"]},
+            {"name": "friday_absence_rate", "type": "float", "samples": [0.23, 0.05]}
+          ]
+        }
+      },
+      {
+        "name": "broken connector",
+        "summary": null
+      },
+      {
+        "name": "Orders sheet",
+        "summary": {
+          "source": "orders.gsheet",
+          "rows": 1842,
+          "columns": [
+            {"name": "order_value", "type": "float", "samples": [120.5, 89.0]}
+          ]
+        }
+      }
+    ]
+  }
+}

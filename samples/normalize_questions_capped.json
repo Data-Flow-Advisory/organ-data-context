@@ -1,0 +1,12 @@
+{
+  "state": {
+    "op": "normalize_questions",
+    "questions": [
+      "Your data shows a 23% absence rate on Fridays — what's happening on Fridays?",
+      "The orders sheet records ~200 orders a day but you mentioned 50 — where's the gap?",
+      "Finance has no entries after March — did that team move systems?",
+      "This fourth question should be dropped by the cap.",
+      12345
+    ]
+  }
+}
