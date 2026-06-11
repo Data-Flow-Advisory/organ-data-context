@@ -1,0 +1,31 @@
+{
+  "_README": "Typed port manifest for this organ (the Lego stud). 'name' is the literal wiring address: the key decide() reads under state (inputs) / writes under output (outputs). 'type' is a name from the shared vocabulary in types.json. Two ports connect iff their type matches. See CONNECTORS.md in the orchestrator repo. This organ is op-dispatched (state['op'] in summary/validate_gate/normalize_validations/normalize_questions); each op reads/writes a subset, so all non-op inputs are required:false.",
+  "inputs": [
+    {"name": "op", "type": "str", "required": true},
+    {"name": "connections", "type": "ConnectorSummaries", "required": false},
+    {"name": "has_data", "type": "bool", "required": false},
+    {"name": "answer_text", "type": "str", "required": false},
+    {"name": "validations", "type": "ValidationList", "required": false},
+    {"name": "questions", "type": "QuestionList", "required": false}
+  ],
+  "outputs": [
+    {"name": "context", "type": "str"},
+    {"name": "source_count", "type": "int"},
+    {"name": "should_validate", "type": "bool"},
+    {"name": "reason", "type": "str"},
+    {"name": "validations", "type": "ValidationList"},
+    {"name": "dropped", "type": "int"},
+    {"name": "questions", "type": "QuestionList"},
+    {"name": "count", "type": "int"}
+  ],
+  "_checked": {
+    "corpus_checked": "2026-06-11",
+    "oss_checked": "2026-06-11",
+    "corpus_verdict": "unique",
+    "corpus_ref": "discovery-engine/app/services/data_context.py",
+    "corpus_rationale": "Faithful pure extraction of data_context.py. The three capability functions (get_data_summary_for_interview, validate_answer_against_data, generate_data_informed_questions) and the 'CONNECTED DATA SOURCES:' block live ONLY in that single source across the whole corpus (grep-verified). Catalogue lists 'data-context' exactly once. Adjacent organs are complementary pipeline stages, not duplicates: organ-connector-spreadsheet does CSV/XLSX parse/import (upstream), organ-interview does question generation (downstream). No overlapping decider.",
+    "oss_verdict": "build",
+    "oss_ref": null,
+    "oss_rationale": "No permissive OSS to adopt. Capability is bespoke DFA logic: assemble the prompt-specific 'CONNECTED DATA SOURCES' text block from pre-fetched connector summaries, a has-data/length gate, and clamp/enum-coerce LLM JSON arrays to DFA's capped severity shapes. Summary-producing libs (ydata-profiling, Great Expectations) are off-target — the organ consumes pre-fetched summaries (the I/O is the caller's job), it does not produce them. Pydantic/jsonschema could model the normalize_* shapes but is rejected: a heavy dependency for ~10 lines of clamp logic, and the conformance AST gate keeps every organ stdlib-only."
+  }
+}
