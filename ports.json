@@ -1,0 +1,21 @@
+{
+  "_comment": "Connection-standard port declaration for the data-context organ (per orchestrator CONNECTORS.md). 'inputs' are the top-level keys decide() reads from `state`; 'outputs' are the union of keys decide() writes under the result `output` dict across all four ops (summary | validate_gate | normalize_validations | normalize_questions). The envelope keys `rationale` and `self_metric` are part of every organ's return contract, not data ports, so they are not listed here. Types map to the vendored types.json (JSON primitives). This is a multi-op organ: only `op` is read on every call; the remaining inputs and every output are op-specific, so each is required:false and is exercised by at least one op. `op` is the discriminator and is required.",
+  "inputs": [
+    {"name": "op",          "type": "string",  "required": true},
+    {"name": "connections", "type": "array",   "required": false},
+    {"name": "has_data",    "type": "boolean", "required": false},
+    {"name": "answer_text", "type": "string",  "required": false},
+    {"name": "validations", "type": "array",   "required": false},
+    {"name": "questions",   "type": "array",   "required": false}
+  ],
+  "outputs": [
+    {"name": "context",         "type": "string"},
+    {"name": "source_count",    "type": "integer"},
+    {"name": "should_validate", "type": "boolean"},
+    {"name": "reason",          "type": "string"},
+    {"name": "validations",     "type": "array"},
+    {"name": "dropped",         "type": "integer"},
+    {"name": "questions",       "type": "array"},
+    {"name": "count",           "type": "integer"}
+  ]
+}
