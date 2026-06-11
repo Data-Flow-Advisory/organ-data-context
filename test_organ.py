@@ -347,3 +347,62 @@ class TestSamples:
                 payload = json.load(f)
             result = decide(payload["state"], payload.get("context"))
             assert set(result) == {"output", "rationale", "self_metric"}
+
+
+# --------------------------------------------------------------------------- #
+# samples are PINNED to their expected verdicts
+#
+# The conformance.yml "Shadow-run" step only PRINTS each sample's verdict to
+# the job summary — it never asserts it, so a regression that flipped a
+# verdict (or changed an output field) would slip a green CI. These assertions
+# pin the decision_path AND the load-bearing output values per sample, so any
+# drift in the organ's behaviour against its committed fixtures turns CI red.
+# --------------------------------------------------------------------------- #
+class TestSamplesConform:
+    def _run(self, name):
+        import os
+        here = os.path.dirname(__file__)
+        with open(os.path.join(here, "samples", name)) as f:
+            payload = json.load(f)
+        return decide(payload["state"], payload.get("context"))
+
+    def test_normalize_questions_capped(self):
+        r = self._run("normalize_questions_capped.json")
+        assert r["self_metric"]["decision_path"] == "questions_normalized"
+        assert r["output"]["count"] == 3
+        # 5 input questions -> capped to first 3, all stringified
+        assert r["output"]["questions"] == [
+            "Your data shows a 23% absence rate on Fridays — what's happening on Fridays?",
+            "The orders sheet records ~200 orders a day but you mentioned 50 — where's the gap?",
+            "Finance has no entries after March — did that team move systems?",
+        ]
+
+    def test_normalize_validations_contradiction(self):
+        r = self._run("normalize_validations_contradiction.json")
+        assert r["self_metric"]["decision_path"] == "validations_normalized"
+        vals = r["output"]["validations"]
+        # middle entry has no 'claim' -> dropped; 2 survive
+        assert len(vals) == 2
+        assert r["output"]["dropped"] == 1
+        assert vals[0]["severity"] == "contradiction"
+        # "made-up-severity" is not in the enum -> coerced to "note"
+        assert vals[1]["severity"] == "note"
+        assert vals[1]["claim"] == "Fridays are quiet"
+
+    def test_summary_two_sources(self):
+        r = self._run("summary_two_sources.json")
+        assert r["self_metric"]["decision_path"] == "summary_assembled"
+        # 3 connections, one null summary -> 2 buildable blocks
+        assert r["output"]["source_count"] == 2
+        ctx = r["output"]["context"]
+        assert ctx.startswith("CONNECTED DATA SOURCES:")
+        assert "Data source: staff.csv" in ctx
+        assert "Data source: orders.gsheet" in ctx
+        assert "broken connector" not in ctx
+        assert "\n\n---\n\n" in ctx
+
+    def test_validate_gate_ok(self):
+        r = self._run("validate_gate_ok.json")
+        assert r["self_metric"]["decision_path"] == "gate_ok"
+        assert r["output"]["should_validate"] is True
+        assert r["output"]["reason"] == "ok"
